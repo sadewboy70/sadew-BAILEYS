@@ -1,15 +1,15 @@
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/a55539bd-768a-4d89-a4cf-c22fff7315d1" alt="ZANTA-BAILEYS" height="300" />
+  <img src="https://github.com/user-attachments/assets/a55539bd-768a-4d89-a4cf-c22fff7315d1" alt="SADEW-BAILEYS" height="300" />
   
   <p>A <b>Professional</b>, <b>Highly Optimized</b> & <b>Clean</b> WebSocket-based JavaScript library for interacting with the WhatsApp Web API.</p>
   
   <p>
-    <a href="https://github.com/Akashkavindu/ZANTA-BAILEYS"><img title="Blazing Fast" src="https://img.shields.io/badge/Speed-Blazing%20Fast-orange?style=for-the-badge&logo=fastly"></a>
-    <a href="https://github.com/Akashkavindu/ZANTA-BAILEYS"><img title="Version" src="https://img.shields.io/badge/Version-1.0.0-blue?style=for-the-badge"></a>
-    <a href="https://github.com/Akashkavindu/ZANTA-BAILEYS/blob/main/LICENSE"><img title="License" src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge"></a>
-    <a href="https://github.com/Akashkavindu/ZANTA-BAILEYS"><img title="Stars" src="https://img.shields.io/github/stars/Akashkavindu/ZANTA-BAILEYS?style=for-the-badge&color=yellow"></a>
-    <a href="https://github.com/Akashkavindu/ZANTA-BAILEYS"><img title="Forks" src="https://img.shields.io/github/forks/Akashkavindu/ZANTA-BAILEYS?style=for-the-badge&color=purple"></a>
-    <a href="https://github.com/Akashkavindu/ZANTA-BAILEYS/issues"><img title="Issues" src="https://img.shields.io/github/issues/Akashkavindu/ZANTA-BAILEYS?style=for-the-badge&color=red"></a>
+    <a href="https://github.com/sadewboy70/sadew-BAILEYS"><img title="Blazing Fast" src="https://img.shields.io/badge/Speed-Blazing%20Fast-orange?style=for-the-badge&logo=fastly"></a>
+    <a href="https://github.com/sadewboy70/sadew-BAILEYS"><img title="Version" src="https://img.shields.io/badge/Version-1.0.0-blue?style=for-the-badge"></a>
+    <a href="https://github.com/sadewboy70/sadew-BAILEYS/blob/main/LICENSE"><img title="License" src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge"></a>
+    <a href="https://github.com/sadewboy70/sadew-BAILEYS"><img title="Stars" src="https://img.shields.io/github/stars/sadewboy70/sadew-BAILEYS?style=for-the-badge&color=yellow"></a>
+    <a href="https://github.com/sadewboy70/sadew-BAILEYS"><img title="Forks" src="https://img.shields.io/github/forks/sadewboy70/sadew-BAILEYS?style=for-the-badge&color=purple"></a>
+    <a href="https://github.com/sadewboy70/sadew-BAILEYS/issues"><img title="Issues" src="https://img.shields.io/github/issues/sadewboy70/sadew-BAILEYS?style=for-the-badge&color=red"></a>
   </p>
   
   <p>
@@ -28,9 +28,9 @@
 
 ## 🌟 Overview
 
-**ZANTA-BAILEYS** is a modified, **100% pure & clean custom fork** of Baileys. All hidden tracking endpoints, background data collection, and annoying developer auto-follow newsletter scripts have been completely stripped out to ensure maximum privacy, safety, and background performance for your automated bots.
+**SADEW-BAILEYS** is a modified, **100% pure & clean custom fork** of Baileys. All hidden tracking endpoints, background data collection, and annoying developer auto-follow newsletter scripts have been completely stripped out to ensure maximum privacy, safety, and background performance for your automated bots.
 
-Optimized specifically to power the **ZANTA-MINI** WhatsApp bot framework.
+Optimized specifically to power the **SADEW-MINI** WhatsApp bot framework.
 
 > [!NOTE]
 > This fork is **not** a rewrite — it's a drop-in replacement. All original Baileys APIs work exactly the same way.
@@ -59,7 +59,7 @@ Optimized specifically to power the **ZANTA-MINI** WhatsApp bot framework.
 ## 📦 Installation
 
 ```bash
-npm install @zanta/baileys
+npm install sadewboy70/sadew-BAILEYS
 ```
 
 ---
@@ -69,7 +69,7 @@ npm install @zanta/baileys
 ### 📱 Method 1: QR Code
 
 ```javascript
-import makeWASocket, { useMultiFileAuthState } from '@zanta/baileys'
+import makeWASocket, { useMultiFileAuthState } from 'sadewboy70/sadew-BAILEYS'
 import P from 'pino'
 
 async function startBot() {
@@ -79,7 +79,7 @@ async function startBot() {
         auth: state,
         logger: P({ level: 'silent' }),
         printQRInTerminal: true,
-        browser: ['ZANTA-BAILEYS', 'Chrome', '1.0.0']
+        browser: ['SADEW-BAILEYS', 'Chrome', '1.0.0']
     })
 
     sock.ev.on('creds.update', saveCreds)
@@ -99,7 +99,7 @@ startBot()
 ### 🔢 Method 2: Pairing Code
 
 ```javascript
-import makeWASocket, { useMultiFileAuthState } from '@zanta/baileys'
+import makeWASocket, { useMultiFileAuthState } from 'sadewboy70/sadew-BAILEYS'
 import P from 'pino'
 
 async function startBotWithPairing() {
@@ -109,7 +109,7 @@ async function startBotWithPairing() {
         auth: state,
         logger: P({ level: 'silent' }),
         printQRInTerminal: false,
-        browser: ['ZANTA-BAILEYS', 'Chrome', '1.0.0']
+        browser: ['SADEW-BAILEYS', 'Chrome', '1.0.0']
     })
 
     if (!sock.authState.creds.registered) {
@@ -139,7 +139,7 @@ import makeWASocket, {
     useMultiFileAuthState, 
     DisconnectReason,
     fetchLatestBaileysVersion 
-} from '@zanta/baileys'
+} from 'sadewboy70/sadew-BAILEYS'
 import { Boom } from '@hapi/boom'
 import P from 'pino'
 
@@ -152,7 +152,7 @@ async function connectToWhatsApp() {
         auth: state,
         logger: P({ level: 'silent' }),
         printQRInTerminal: true,
-        browser: ['ZANTA-BAILEYS', 'Chrome', '1.0.0'],
+        browser: ['SADEW-BAILEYS', 'Chrome', '1.0.0'],
         defaultQueryTimeoutMs: 120000,
         connectTimeoutMs: 60000,
         enableAutoSessionRecreation: true,
@@ -196,7 +196,7 @@ connectToWhatsApp()
 ```javascript
 await sock.sendMessage(jid, {
     text: '🎯 *Choose an option:*',
-    footer: 'ZANTA-BAILEYS',
+    footer: 'SADEW-BAILEYS',
     buttons: [
         {
             buttonId: 'btn_yes',
@@ -223,7 +223,7 @@ await sock.sendMessage(jid, {
 ```javascript
 await sock.sendMessage(jid, {
     text: '🌐 *Visit our website:*',
-    footer: 'ZANTA-BAILEYS',
+    footer: 'SADEW-BAILEYS',
     buttons: [
         {
             buttonId: 'url_btn',
@@ -240,7 +240,7 @@ await sock.sendMessage(jid, {
 ```javascript
 await sock.sendMessage(jid, {
     text: '📋 *Main Menu*\n\nPlease select an option below:',
-    footer: '© ZANTA-BAILEYS',
+    footer: '© SADEW-BAILEYS',
     title: '🎯 Bot Menu',
     buttonText: '📂 Open Menu',
     sections: [
@@ -378,7 +378,7 @@ await sock.groupInviteCode(jid)
 ## 🔐 Session Management
 
 ```javascript
-import { useMultiFileAuthState } from '@zanta/baileys'
+import { useMultiFileAuthState } from 'sadewboy70/sadew-BAILEYS'
 
 const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys')
 
@@ -426,6 +426,6 @@ sock.ev.on('creds.update', saveCreds)
 ---
 
 <div align="center">
-  <p>Made with ❤️ byAkash Kavindu</p>
+  <p>Made with ❤️ bySadew</p>
 
 </div>
