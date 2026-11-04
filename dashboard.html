@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SADEW-BAILEYS | Multi-Server Channel Poll Voter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #090d16;
+            --card-bg: rgba(16, 24, 40, 0.75);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(56, 189, 248, 0.4);
+            --primary: #0284c7;
+            --primary-glow: #38bdf8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+            min-height: 100vh;
+            color: var(--text-main);
+            padding: 24px 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 680px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--primary-glow);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.85); }
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        input:focus {
+            border-color: var(--primary-glow);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+        }
+
+        .helper {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 8px 24px rgba(2, 132, 199, 0.35);
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(2, 132, 199, 0.5);
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            padding: 16px;
+            border-radius: 14px;
+            text-align: center;
+        }
+
+        .stat-val {
+            font-size: 28px;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 4px;
+        }
+
+        .stat-val.success { color: var(--success); }
+        .stat-val.failed { color: var(--danger); }
+
+        .stat-lbl {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .logs-card {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px;
+        }
+
+        .logs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .logs-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #cbd5e1;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .clear-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .clear-btn:hover { color: #fff; }
+
+        .logs-terminal {
+            height: 180px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #94a3b8;
+            background: #060911;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .log-line {
+            margin-bottom: 4px;
+            word-break: break-all;
+        }
+
+        .log-line.success { color: #34d399; }
+        .log-line.failed { color: #f87171; }
+        .log-line.info { color: #38bdf8; }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="badge">
+            <span class="badge-dot"></span>
+            Cloud Poll Hub Active
+        </div>
+        <h1>Channel Poll Multi-Voter</h1>
+        <p class="subtitle">Broadcasts poll votes across all 15 Heroku servers (40 devices) simultaneously</p>
+    </div>
+
+    <div class="card">
+        <form id="voteForm">
+            <div class="form-group">
+                <label for="pollLink">WhatsApp Channel Poll Link</label>
+                <input type="url" id="pollLink" placeholder="https://whatsapp.com/channel/0029VaXXXXX/123" required autocomplete="off">
+                <div class="helper">WhatsApp Channel එකේ Poll message එක Long-press කර 'Copy Link' ලබාගන්න.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="pollOption">Option Number or Name</label>
+                <input type="text" id="pollOption" placeholder="1 (හෝ Option Text එක, උදා: Yes)" required autocomplete="off">
+                <div class="helper">Poll එකේ ඔබන්න අවශ්‍ය Option එකේ අංකය (1, 2, 3...) හෝ නම ටයිප් කරන්න.</div>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn-submit">
+                <span>🚀 CAST VOTES (ALL 15 SERVERS)</span>
+            </button>
+        </form>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-box">
+            <div class="stat-val success" id="successCount">0</div>
+            <div class="stat-lbl">Successful Votes</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-val failed" id="failCount">0</div>
+            <div class="stat-lbl">Failed Votes</div>
+        </div>
+    </div>
+
+    <div class="logs-card">
+        <div class="logs-header">
+            <span class="logs-title">Live Server Response Feed</span>
+            <button class="clear-btn" id="clearBtn">Clear</button>
+        </div>
+        <div class="logs-terminal" id="terminal">
+            <div class="log-line info">[System] Connected to Central Cloud Hub. Ready for broadcast.</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const TOPIC_VOTE = 'sadew_poll_vote_hub_70';
+    const TOPIC_STATUS = 'sadew_poll_status_hub_70';
+
+    const form = document.getElementById('voteForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const terminal = document.getElementById('terminal');
+    const successCountEl = document.getElementById('successCount');
+    const failCountEl = document.getElementById('failCount');
+    const clearBtn = document.getElementById('clearBtn');
+
+    let successCount = 0;
+    let failCount = 0;
+
+    function addLog(text, type = 'normal') {
+        const line = document.createElement('div');
+        line.className = `log-line ${type}`;
+        const time = new Date().toLocaleTimeString();
+        line.innerText = `[${time}] ${text}`;
+        terminal.appendChild(line);
+        terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    clearBtn.addEventListener('click', () => {
+        terminal.innerHTML = '';
+        successCount = 0;
+        failCount = 0;
+        successCountEl.innerText = '0';
+        failCountEl.innerText = '0';
+        addLog('Terminal cleared.', 'info');
+    });
+
+    // Listen to live feedback from all 15 Heroku servers
+    function connectStatusStream() {
+        const eventSource = new EventSource(`https://ntfy.sh/${TOPIC_STATUS}/sse`);
+
+        eventSource.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.event === 'message' && data.message) {
+                    const statusObj = JSON.parse(data.message);
+                    if (statusObj.status === 'success') {
+                        successCount++;
+                        successCountEl.innerText = successCount;
+                        addLog(`✅ [${statusObj.phone}] Voted for "${statusObj.option}" in "${statusObj.channel || 'Channel'}"`, 'success');
+                    } else if (statusObj.status === 'failed') {
+                        failCount++;
+                        failCountEl.innerText = failCount;
+                        addLog(`❌ [${statusObj.phone}] Error: ${statusObj.error || 'Failed'}`, 'failed');
+                    }
+                }
+            } catch (err) {
+                // Ignore raw messages
+            }
+        };
+
+        eventSource.onerror = () => {
+            setTimeout(connectStatusStream, 5000);
+        };
+    }
+
+    connectStatusStream();
+
+    // Submit vote command to central topic
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const link = document.getElementById('pollLink').value.trim();
+        const option = document.getElementById('pollOption').value.trim();
+
+        if (!link || !option) {
+            alert('කරුණාකර Channel Poll Link එක සහ Option එක ඇතුළත් කරන්න!');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner"></span> <span>BROADCASTING TO 15 SERVERS...</span>';
+
+        addLog(`📡 Broadcasting vote command to all 15 Heroku servers...`, 'info');
+
+        try {
+            const payload = {
+                link,
+                option,
+                timestamp: Date.now()
+            };
+
+            const response = await fetch(`https://ntfy.sh/${TOPIC_VOTE}`, {
+                method: 'POST',
+                headers: {
+                    'Title': 'New Channel Poll Vote',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                addLog(`⚡ Broadcast sent successfully! Waiting for devices to vote...`, 'info');
+            } else {
+                addLog(`⚠️ Broadcast request failed with status: ${response.status}`, 'failed');
+            }
+        } catch (err) {
+            addLog(`❌ Failed to send command: ${err.message}`, 'failed');
+        } finally {
+            setTimeout(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>🚀 CAST VOTES (ALL 15 SERVERS)</span>';
+            }, 3000);
+        }
+    });
+</script>
+
+</body>
+</html>
