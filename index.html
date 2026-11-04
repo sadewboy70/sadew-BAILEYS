@@ -302,13 +302,13 @@
             </div>
 
             <div class="form-group">
-                <label for="pollOption">Option Name (හෝ Option Number: 1, 2, 3...)</label>
-                <input type="text" id="pollOption" placeholder="උදා: Yes (හෝ Option අංකය: 1)" required autocomplete="off">
-                <div class="helper">Poll එකේ ඔබන්න අවශ්‍ය Option එකේ Exact Text එක (උදා: <b>Yes</b> / <b>Messi</b>) හෝ අංකය (1, 2) ලියන්න.</div>
+                <label for="pollOption">Option Name / Text (ඡන්දය දිය යුතු Option එකේ නම)</label>
+                <input type="text" id="pollOption" placeholder="උදා: Yes, No, Option 2, Messi..." required autocomplete="off">
+                <div class="helper">⚠️ 1, 2, 3 වැනි අංක නොදා, Poll එකේ ඔබන්න අවශ්‍ය Option එකේ <b>නම (Text එක)</b> මෙහි Type කරන්න.</div>
             </div>
 
             <div class="tip-box">
-                💡 <b>වැදගත් උපදෙසක්:</b> WhatsApp Channel Polls වලට Vote වැටෙන්නේ Option එකේ ඇති නියම Text එකේ Hash එකටයි. Option අංකය (`1`, `2`) හෝ Poll එකේ තිබෙන <b>Exact Option Text එකම</b> (උදා: <code>Yes</code>, <code>Option A</code>) ටයිප් කළ හැක.
+                💡 <b>මතක තබා ගන්න:</b> Channel එක Follow නොකර Vote කරන බැවින් WhatsApp Server එක පිළිගන්නේ Option එකේ ඇති <b>නියම Text එක (නම)</b> පමණි. උදාහරණයට, 2 වැනි තේරීමට Vote කිරීමට අවශ්‍ය නම්, 2 වැනි තේරීමේ ඇති නම (උදා: <code>No</code>, <code>නැත</code>, <code>Option B</code>) Type කරන්න.
             </div>
 
             <button type="submit" id="submitBtn" class="btn-submit">
@@ -373,7 +373,8 @@
 
     // Listen to live feedback from all 15 Heroku servers
     function connectStatusStream() {
-        const eventSource = new EventSource(`https://ntfy.sh/${TOPIC_STATUS}/sse`);
+        // Use ?since=now so old cached warning messages from past sessions do not replay
+        const eventSource = new EventSource(`https://ntfy.sh/${TOPIC_STATUS}/sse?since=now`);
 
         eventSource.onmessage = (event) => {
             try {
@@ -383,10 +384,10 @@
                     if (statusObj.status === 'success') {
                         successCount++;
                         successCountEl.innerText = successCount;
-                        if (statusObj.resolved === false && !isNaN(Number(statusObj.option))) {
-                            addLog(`⚠️ [${statusObj.phone}] Voted as raw "${statusObj.option}". (නියම Option Text එක දමන්න!)`, 'warning');
+                        if (!isNaN(Number(statusObj.option))) {
+                            addLog(`⚠️ [${statusObj.phone}] Voted with number "${statusObj.option}". WhatsApp එකෙන් count වීමට Option එකේ නම Type කරන්න!`, 'warning');
                         } else {
-                            addLog(`✅ [${statusObj.phone}] Voted for "${statusObj.option}" in "${statusObj.channel || 'Channel'}"`, 'success');
+                            addLog(`✅ [${statusObj.phone}] Successfully voted for "${statusObj.option}" in "${statusObj.channel || 'Channel'}"`, 'success');
                         }
                     } else if (statusObj.status === 'failed') {
                         failCount++;
