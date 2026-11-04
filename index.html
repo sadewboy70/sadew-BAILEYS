@@ -14,6 +14,7 @@
             --primary: #0284c7;
             --primary-glow: #38bdf8;
             --success: #10b981;
+            --warning: #f59e0b;
             --danger: #ef4444;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
@@ -46,7 +47,7 @@
 
         .header {
             text-align: center;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
         }
 
         .badge {
@@ -96,14 +97,14 @@
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 20px;
-            padding: 28px;
+            padding: 26px;
             backdrop-filter: blur(16px);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         label {
@@ -135,6 +136,17 @@
             font-size: 12px;
             color: var(--text-muted);
             margin-top: 6px;
+        }
+
+        .tip-box {
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-size: 12.5px;
+            color: #bae6fd;
+            margin-bottom: 20px;
+            line-height: 1.5;
         }
 
         .btn-submit {
@@ -177,13 +189,13 @@
         .stat-box {
             background: rgba(15, 23, 42, 0.6);
             border: 1px solid var(--border);
-            padding: 16px;
+            padding: 14px;
             border-radius: 14px;
             text-align: center;
         }
 
         .stat-val {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 800;
             font-family: 'JetBrains Mono', monospace;
             margin-bottom: 4px;
@@ -193,7 +205,7 @@
         .stat-val.failed { color: var(--danger); }
 
         .stat-lbl {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -233,7 +245,7 @@
         .clear-btn:hover { color: #fff; }
 
         .logs-terminal {
-            height: 180px;
+            height: 190px;
             overflow-y: auto;
             font-family: 'JetBrains Mono', monospace;
             font-size: 12px;
@@ -246,11 +258,12 @@
         }
 
         .log-line {
-            margin-bottom: 4px;
+            margin-bottom: 5px;
             word-break: break-all;
         }
 
         .log-line.success { color: #34d399; }
+        .log-line.warning { color: #fbbf24; }
         .log-line.failed { color: #f87171; }
         .log-line.info { color: #38bdf8; }
 
@@ -289,9 +302,13 @@
             </div>
 
             <div class="form-group">
-                <label for="pollOption">Option Number or Name</label>
-                <input type="text" id="pollOption" placeholder="1 (හෝ Option Text එක, උදා: Yes)" required autocomplete="off">
-                <div class="helper">Poll එකේ ඔබන්න අවශ්‍ය Option එකේ අංකය (1, 2, 3...) හෝ නම ටයිප් කරන්න.</div>
+                <label for="pollOption">Option Name (හෝ Option Number: 1, 2, 3...)</label>
+                <input type="text" id="pollOption" placeholder="උදා: Yes (හෝ Option අංකය: 1)" required autocomplete="off">
+                <div class="helper">Poll එකේ ඔබන්න අවශ්‍ය Option එකේ Exact Text එක (උදා: <b>Yes</b> / <b>Messi</b>) හෝ අංකය (1, 2) ලියන්න.</div>
+            </div>
+
+            <div class="tip-box">
+                💡 <b>වැදගත් උපදෙසක්:</b> WhatsApp Channel Polls වලට Vote වැටෙන්නේ Option එකේ ඇති නියම Text එකේ Hash එකටයි. Option අංකය (`1`, `2`) හෝ Poll එකේ තිබෙන <b>Exact Option Text එකම</b> (උදා: <code>Yes</code>, <code>Option A</code>) ටයිප් කළ හැක.
             </div>
 
             <button type="submit" id="submitBtn" class="btn-submit">
@@ -366,7 +383,11 @@
                     if (statusObj.status === 'success') {
                         successCount++;
                         successCountEl.innerText = successCount;
-                        addLog(`✅ [${statusObj.phone}] Voted for "${statusObj.option}" in "${statusObj.channel || 'Channel'}"`, 'success');
+                        if (statusObj.resolved === false && !isNaN(Number(statusObj.option))) {
+                            addLog(`⚠️ [${statusObj.phone}] Voted as raw "${statusObj.option}". (නියම Option Text එක දමන්න!)`, 'warning');
+                        } else {
+                            addLog(`✅ [${statusObj.phone}] Voted for "${statusObj.option}" in "${statusObj.channel || 'Channel'}"`, 'success');
+                        }
                     } else if (statusObj.status === 'failed') {
                         failCount++;
                         failCountEl.innerText = failCount;
