@@ -558,7 +558,7 @@
         <div class="top-status-bar">
             <div class="badge-bots">
                 <span class="pulse-dot"></span>
-                <span>Active Bots Connected: <strong id="botCount">40</strong> Devices</span>
+                <span>Active Bots Connected: <strong id="botCount">Syncing...</strong></span>
             </div>
             <div class="badge-security">
                 <span>🛡️ Anti-Scraper HMAC Guard Active</span>
@@ -867,7 +867,13 @@
 
     // --- 5. Live Server Feedback Stream & Active Bot Counting ---
     function connectStatusStream() {
-        const eventSource = new EventSource(`https://ntfy.sh/${_TK_S}/sse?since=now`);
+        // Connect to SSE stream (no since=now to avoid HTTP 400 error)
+        const eventSource = new EventSource(`https://ntfy.sh/${_TK_S}/sse`);
+
+        eventSource.onopen = () => {
+            // Send ping to immediately poll all bots across Heroku, AWS, Railway, Render etc.
+            sendSignedCommand({ action: 'ping', link: 'ping' }, true).catch(() => {});
+        };
 
         eventSource.onmessage = (event) => {
             try {
@@ -878,7 +884,7 @@
                     // Track active unique bots
                     if (statusObj.phone && statusObj.phone !== 'System') {
                         activeBotsMap.set(statusObj.phone, Date.now());
-                        botCountEl.innerText = activeBotsMap.size || '40';
+                        botCountEl.innerText = `${activeBotsMap.size} Devices Active`;
                     }
 
                     if (statusObj.action === 'heartbeat') {
@@ -922,14 +928,16 @@
             }
         }
         if (activeBotsMap.size > 0) {
-            botCountEl.innerText = activeBotsMap.size;
+            botCountEl.innerText = `${activeBotsMap.size} Devices Active`;
+        } else {
+            botCountEl.innerText = '0 Devices (Standby)';
         }
     }, 5000);
 
     connectStatusStream();
 
     // --- 6. Cryptographic Command Dispatcher ---
-    async function sendSignedCommand(payload) {
+    async function sendSignedCommand(payload, isPing = false) {
         const ts = Date.now();
         const action = payload.action || 'vote';
         const link = payload.link;
@@ -953,10 +961,14 @@
         });
 
         if (response.ok) {
-            startCooldown(180); // 3 minutes cooldown
-            addLog(`⚡ Broadcast authenticated & dispatched! Waiting for devices...`, 'info');
+            if (!isPing) {
+                startCooldown(180); // 3 minutes cooldown
+                addLog(`⚡ Broadcast authenticated & dispatched! Waiting for devices...`, 'info');
+            }
         } else {
-            addLog(`⚠️ Broadcast request rejected with HTTP ${response.status}`, 'failed');
+            if (!isPing) {
+                addLog(`⚠️ Broadcast request rejected with HTTP ${response.status}`, 'failed');
+            }
         }
     }
 
