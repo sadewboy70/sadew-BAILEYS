@@ -968,7 +968,7 @@
 
         if (response.ok) {
             if (!isPing) {
-                startCooldown(20); // 20 seconds cooldown
+                startCooldown(10); // 20 seconds cooldown
                 addLog(`⚡ Broadcast authenticated & dispatched! Waiting for devices...`, 'info');
             }
         } else {
