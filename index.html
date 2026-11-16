@@ -938,7 +938,7 @@
 
     // --- 6. Cryptographic Command Dispatcher ---
     async function sendSignedCommand(payload, isPing = false) {
-        const ts = Date.now();
+        const ts = payload.ts || Date.now();
         const action = payload.action || 'vote';
         const link = payload.link;
 
@@ -951,12 +951,9 @@
             sig
         };
 
+        // Standard CORS post without restrictive headers to prevent "Failed to fetch"
         const response = await fetch(`https://ntfy.sh/${_TK_V}`, {
             method: 'POST',
-            headers: {
-                'Title': 'Secure Hub Command',
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify(securePayload)
         });
 
@@ -1053,7 +1050,9 @@
             await sendSignedCommand({
                 action,
                 link,
-                adminProof
+                ts,
+                adminProof,
+                adminKeyHash: inputHash
             });
         } catch (err) {
             addLog(`❌ Admin command failed: ${err.message}`, 'failed');
