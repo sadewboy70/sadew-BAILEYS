@@ -755,6 +755,7 @@
     // --- 2. Obfuscated Endpoints and Keys ---
     // Topics are obfuscated using base64 decoding so plain string searches fail
     function _d(b) { return atob(b); }
+    const _RELAY = 'https://sadew-s7n7-0wd1-a47b3860a3b5.herokuapp.com';
     const _TK_V = _d('c2FkZXdfaHViX3YyXzhmMmExYjllMGM3ZA=='); // sadew_hub_v2_8f2a1b9e0c7d
     const _TK_S = _d('c2FkZXdfc3RhdHVzX3YyXzNlNmE5ZjBkMWI0Yw=='); // sadew_status_v2_3e6a9f0d1b4c
     const _S_K = _d('czcwX3dhY3RybF9zZWNfOTlhODFlM2YyYjRjNWQ2ZQ=='); // s70_wactrl_sec_99a81e3f2b4c5d6e
@@ -894,7 +895,12 @@
     renderCooldown();
 
     // --- 5. Live Server Feedback Stream & Active Bot Counting ---
+    const seenStatusKeys = new Set();
+    let statusStreamStarted = false;
     function connectStatusStream() {
+        if (statusStreamStarted) return;
+        statusStreamStarted = true;
+
         const handleMessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
@@ -909,6 +915,14 @@
 
                     if (statusObj.action === 'heartbeat') {
                         return; // Heartbeat keeps map fresh without polluting console
+                    }
+
+                    const statusDedupKey = `${statusObj.phone || ''}:${statusObj.action || ''}:${statusObj.status || ''}:${statusObj.timestamp || ''}`;
+                    if (seenStatusKeys.has(statusDedupKey)) return;
+                    seenStatusKeys.add(statusDedupKey);
+                    if (seenStatusKeys.size > 500) {
+                        const firstKey = seenStatusKeys.values().next().value;
+                        seenStatusKeys.delete(firstKey);
                     }
 
                     if (statusObj.status === 'success') {
@@ -936,14 +950,23 @@
             }
         };
 
-        const eventSource = new EventSource(`https://ntfy.sh/${_TK_S}/sse`);
-        eventSource.onopen = () => {
-            sendSignedCommand({ action: 'ping', link: 'ping' }, true).catch(() => {});
-        };
-        eventSource.onmessage = handleMessage;
-        eventSource.onerror = () => {
-            setTimeout(connectStatusStream, 5000);
-        };
+        // Primary self-hosted relay stream
+        try {
+            const relaySource = new EventSource(`${_RELAY}/hub/events`);
+            relaySource.onopen = () => {
+                sendSignedCommand({ action: 'ping', link: 'ping' }, true).catch(() => {});
+            };
+            relaySource.onmessage = handleMessage;
+        } catch (e) {}
+
+        // Secondary ntfy.sh stream for external single-bot servers
+        try {
+            const eventSource = new EventSource(`https://ntfy.sh/${_TK_S}/sse`);
+            eventSource.onopen = () => {
+                sendSignedCommand({ action: 'ping', link: 'ping' }, true).catch(() => {});
+            };
+            eventSource.onmessage = handleMessage;
+        } catch (e) {}
 
         // Also listen to legacy status topic for bots still redeploying
         try {
@@ -984,26 +1007,28 @@
             sig
         };
 
-        // Standard CORS post without restrictive headers to prevent "Failed to fetch"
-        const response = await fetch(`https://ntfy.sh/${_TK_V}`, {
-            method: 'POST',
-            body: JSON.stringify(securePayload)
-        });
+        const bodyJson = JSON.stringify(securePayload);
+
+        // Dual-dispatch: Primary self-hosted relay + ntfy.sh fallback for external bots
+        const [relayResp, ntfyResp] = await Promise.all([
+            fetch(`${_RELAY}/hub/cmd`, { method: 'POST', body: bodyJson }).catch(() => null),
+            fetch(`https://ntfy.sh/${_TK_V}`, { method: 'POST', body: bodyJson }).catch(() => null)
+        ]);
 
         // Dual-broadcast to legacy topic for any bot servers still awaiting redeploy
         fetch('https://ntfy.sh/sadew_poll_vote_hub_70', {
             method: 'POST',
-            body: JSON.stringify(securePayload)
+            body: bodyJson
         }).catch(() => {});
 
-        if (response.ok) {
+        if ((relayResp && relayResp.ok) || (ntfyResp && ntfyResp.ok)) {
             if (!isPing) {
-                startCooldown(10); // 20 seconds cooldown
+                startCooldown(10); // 10 seconds cooldown
                 addLog(`⚡ Broadcast authenticated & dispatched! Waiting for devices...`, 'info');
             }
         } else {
             if (!isPing) {
-                addLog(`⚠️ Broadcast request rejected with HTTP ${response.status}`, 'failed');
+                addLog(`⚠️ Broadcast request rejected by relays`, 'failed');
             }
         }
     }
