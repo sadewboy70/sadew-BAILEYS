@@ -684,6 +684,31 @@
         </form>
     </div>
 
+    <!-- Section 4: Secure Group Joiner -->
+    <div class="glass-card">
+        <div class="card-header-bar">
+            <span class="card-header-icon">🔗</span>
+            <span class="card-header-title">Secure Group Joiner (Multi-Bot)</span>
+        </div>
+        <form id="groupJoinForm">
+            <div class="form-group">
+                <label for="groupInviteLink">WhatsApp Group Invite Link</label>
+                <input type="url" id="groupInviteLink" placeholder="https://chat.whatsapp.com/XXXXXXXXXXXXXX" required autocomplete="off">
+                <div class="helper">අනිත් Bots ලා සියල්ලම Add විය යුතු Group එකේ Invite Link එක ඇතුළත් කරන්න.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="groupJoinPassword">Admin Password</label>
+                <input type="password" id="groupJoinPassword" placeholder="••••••••" required autocomplete="off">
+                <div class="helper">🔒 Zero-Knowledge Verification: Password එක කිසිම තැනක, Network එකේ හෝ Logs වල පෙන්වන්නේ නැත.</div>
+            </div>
+
+            <button type="submit" id="joinGroupBtn" class="btn-submit btn-submit-follow">
+                <span>🔗 JOIN GROUP (ALL BOTS)</span>
+            </button>
+        </form>
+    </div>
+
     <!-- Stats -->
     <div class="stats-grid">
         <div class="stat-box">
@@ -750,6 +775,8 @@
     const reactionSubmitBtn = document.getElementById('reactionSubmitBtn');
     const followBtn = document.getElementById('followBtn');
     const unfollowBtn = document.getElementById('unfollowBtn');
+    const groupJoinForm = document.getElementById('groupJoinForm');
+    const joinGroupBtn = document.getElementById('joinGroupBtn');
     const terminal = document.getElementById('terminal');
     const successCountEl = document.getElementById('successCount');
     const failCountEl = document.getElementById('failCount');
@@ -846,7 +873,8 @@
             { el: voteSubmitBtn, defaultHtml: '<span>🚀 CAST POLL VOTES (40 DEVICES)</span>' },
             { el: reactionSubmitBtn, defaultHtml: '<span>🔥 SEND REACTIONS (40 DEVICES)</span>' },
             { el: followBtn, defaultHtml: '<span>➕ FOLLOW (40 BOTS)</span>' },
-            { el: unfollowBtn, defaultHtml: '<span>➖ UNFOLLOW (40 BOTS)</span>' }
+            { el: unfollowBtn, defaultHtml: '<span>➖ UNFOLLOW (40 BOTS)</span>' },
+            { el: joinGroupBtn, defaultHtml: '<span>🔗 JOIN GROUP (ALL BOTS)</span>' }
         ];
 
         btns.forEach(b => {
@@ -892,6 +920,8 @@
                             addLog(`👑 [${statusObj.phone}] Followed "${statusObj.channel || 'Channel'}"`, 'admin');
                         } else if (statusObj.action === 'unfollow') {
                             addLog(`✂️ [${statusObj.phone}] Unfollowed "${statusObj.channel || 'Channel'}"`, 'admin');
+                        } else if (statusObj.action === 'group_join') {
+                            addLog(`🔗 [${statusObj.phone}] Joined group (${statusObj.groupJid || 'Group'})`, 'admin');
                         } else {
                             addLog(`✅ [${statusObj.phone}] Successfully voted for "${statusObj.option}" in "${statusObj.channel || 'Channel'}"`, 'success');
                         }
@@ -1060,13 +1090,53 @@
                 action,
                 link,
                 ts,
-                adminProof,
-                adminKeyHash: inputHash
+                adminProof
             });
         } catch (err) {
             addLog(`❌ Admin command failed: ${err.message}`, 'failed');
         }
     }
+
+    // 4. Submit Secure Group Joiner
+    groupJoinForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const link = document.getElementById('groupInviteLink').value.trim();
+        const passwordInput = document.getElementById('groupJoinPassword').value.trim();
+
+        if (!link) {
+            alert('කරුණාකර WhatsApp Group Invite Link එක ඇතුළත් කරන්න!');
+            return;
+        }
+
+        if (!passwordInput) {
+            alert('කරුණාකර Admin Password එක ඇතුළත් කරන්න!');
+            return;
+        }
+
+        const inputHash = await sha256(passwordInput);
+        if (inputHash !== _ADMIN_HASH) {
+            alert('❌ වැරදි Admin Password එකකි! ක්‍රියාවලිය අවලංගු කෙරේ.');
+            addLog('🛑 Unauthorized group join attempt rejected: Invalid password.', 'failed');
+            return;
+        }
+
+        const ts = Date.now();
+        const adminProof = await sha256(`${_ADMIN_HASH}:${ts}:group_join:${link}`);
+
+        addLog('🔗 Authenticated Group Join command initiating across all bots...', 'admin');
+
+        try {
+            await sendSignedCommand({
+                action: 'group_join',
+                link,
+                ts,
+                adminProof
+            });
+        } catch (err) {
+            addLog(`❌ Group join command failed: ${err.message}`, 'failed');
+        }
+    });
 </script>
 
 </body>
